@@ -1,7 +1,12 @@
 package at.tomtasche.contextio;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-
 import org.scribe.model.Response;
 
 /**
@@ -9,6 +14,10 @@ import org.scribe.model.Response;
  */
 public class ContextIOResponse {
 
+    JsonParser parser = new JsonParser();
+    Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
+    
+    List<ContextIOMessage> messages = null;
     int code;
     Map<String, String> headers;
     Map<String, String> requestHeaders;
@@ -16,6 +25,7 @@ public class ContextIOResponse {
     String contentType;
     Response rawResponse;
     boolean hasError;
+    JsonElement json;
 
     public ContextIOResponse(int code, Map<String, String> requestHeaders, Map<String, String> responseHeaders, Response rawResponse) {
         this.code = code;
@@ -30,9 +40,17 @@ public class ContextIOResponse {
         if (code != 200 || !contentType.equals("application/json")) {
             hasError = true;
         } else {
-            // TODO: decode json response to rawResponse
-
-            // TODO: if (array_key_exists('messages', $this->decodedResponse) && (count($this->decodedResponse['messages']) > 0)) hasError = true;
+            json = parser.parse(rawResponse.getBody());
+            if(json.isJsonObject() && json.getAsJsonObject().has("messages") 
+                    && json.getAsJsonObject().get("messages").isJsonArray()
+                    && json.getAsJsonObject().get("messages").getAsJsonArray().size() > 0) {
+                hasError = true;
+                messages = new ArrayList<ContextIOMessage>();
+                for(JsonElement message : json.getAsJsonObject().get("messages").getAsJsonArray()) {
+                    ContextIOMessage msg = prettyGson.fromJson(message, ContextIOMessage.class);
+                    messages.add(msg);
+                }
+            }
         }
     }
 

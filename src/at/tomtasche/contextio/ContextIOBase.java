@@ -1,5 +1,9 @@
 package at.tomtasche.contextio;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import java.util.HashMap;
 import java.util.Map;
 import org.scribe.builder.ServiceBuilder;
@@ -15,6 +19,9 @@ import org.scribe.utils.URLUtils;
  */
 public abstract class ContextIOBase {
 
+    JsonParser parser = new JsonParser();
+    Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
+    
     static final String ENDPOINT = "api.context.io";
 
     String key;
@@ -148,7 +155,30 @@ public abstract class ContextIOBase {
             return lastResponse;
         }
     }
-
+   
+    /**
+     * Examines the response for errors and throws an exception if found
+     * @param response
+     * @throws Exception 
+     */
+    public void checkResponse(ContextIOResponse response) throws Exception {
+        response.decodeResponse();
+        if(response.hasError) {
+            String message = "";
+            if(response.messages != null) {
+                for(ContextIOMessage msg : response.messages) {
+                    message = msg.toString() + "\n";
+                }
+            }
+            throw new Exception(message);
+        }
+    }
+    
+    public void printResponse(ContextIOResponse response) {
+        String pretty = prettyGson.toJson(response.json);
+        System.out.println(pretty);
+    }
+    
     public Map<String, String> filterParams(Map<String, String> givenParams, String[] validParams) {
         Map<String, String> filteredParams = new HashMap<String, String>();
 
