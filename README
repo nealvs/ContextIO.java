@@ -1,5 +1,3 @@
-This is a almost 1:1 copy of the PHP wrapper provided by Context.IO. All I did is translate the ugly PHP syntax into Java syntax...
+I forked the original project to add the 2.0 version of the API and add models to easier work with the API results.  
 
-Some methods aren't implemented (downloadfile) and others don't work exactly as the PHP version.
-
-This project uses almighty scribe-java library by Fernando and powerful gson library by Google. Thanks for these two pieces of awesome sauce! :)
+I'm trying to cover the main API endpoints provided by ContectIO.
