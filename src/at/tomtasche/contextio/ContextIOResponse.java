@@ -39,18 +39,24 @@ public class ContextIOResponse {
     public void decodeResponse() {
         if (code != 200 || !contentType.equals("application/json")) {
             hasError = true;
-        } else {
-            json = parser.parse(rawResponse.getBody());
-            if(json.isJsonObject() && json.getAsJsonObject().has("messages") 
+        }
+        
+        json = parser.parse(rawResponse.getBody());
+        if(json.isJsonObject() && json.getAsJsonObject().has("messages") 
                     && json.getAsJsonObject().get("messages").isJsonArray()
                     && json.getAsJsonObject().get("messages").getAsJsonArray().size() > 0) {
-                hasError = true;
-                messages = new ArrayList<ContextIOMessage>();
-                for(JsonElement message : json.getAsJsonObject().get("messages").getAsJsonArray()) {
-                    ContextIOMessage msg = prettyGson.fromJson(message, ContextIOMessage.class);
-                    messages.add(msg);
-                }
+            hasError = true;
+            messages = new ArrayList<ContextIOMessage>();
+            for(JsonElement message : json.getAsJsonObject().get("messages").getAsJsonArray()) {
+                ContextIOMessage msg = prettyGson.fromJson(message, ContextIOMessage.class);
+                messages.add(msg);
             }
+        } else if(json.isJsonObject() && json.getAsJsonObject().has("type")
+                && json.getAsJsonObject().get("type").getAsString().equalsIgnoreCase("error")) {
+            ContextIOMessage msg = prettyGson.fromJson(json, ContextIOMessage.class);
+            hasError = true;
+            messages = new ArrayList<ContextIOMessage>();
+            messages.add(msg);
         }
     }
 
